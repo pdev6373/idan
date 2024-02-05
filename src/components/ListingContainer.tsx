@@ -6,58 +6,73 @@ import { useStore } from "../hooks/useStore";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { useUserquery } from "../hooks/useUserquery";
+import spinner from "../assets/spinner.svg";
 
 export const ListingContainer = () => {
-	const [services, setServices] = useState([]);
-	const [accommodations, setAccommodations] = useState([]);
-	const store = useStore();
+  //   const [services, setServices] = useState([]);
+  const [accommodations, setAccommodations] = useState([]);
+  const store = useStore();
+  const [toggle, setToggle] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-	useUserquery();
+  useUserquery();
 
-	useEffect(() => {
-		setServices(store.auth.user?.ServiceDetails);
-		setAccommodations(store.auth.user?.AccommodationDetails);
-	}, [store.auth]);
+  //   useEffect(() => {
+  //     setServices(store.auth.user?.ServiceDetails);
+  //     setAccommodations(store.auth.user?.AccommodationDetails);
+  //   }, [store.auth]);
 
-	return (
-		<div className="relative w-full h-full  flex flex-col items-start gap-4 justify-around flex-shrink-0 my-3">
-			<div
-				className="grid items-start self-stretch  justify-between  px-4 py-8 gap-4"
-				style={{ gridTemplateColumns: "repeat(3, 1fr)" }}
-			>
-				{services?.map((service: any, index) => (
-					<>
-						<ListingComponent
-							key={index}
-							img={service.images}
-							name={service.name}
-							location={service.address}
-							price=""
-							id={service?.id}
-						/>
-					</>
-				))}
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get(
+          `${store.url}/accomodation_provider/listings/filter`,
+          { headers: { Authorization: "Bearer " + store.auth.token } }
+        );
 
-				{accommodations?.map((accommodation: any, index) => (
-					<>
-						<ListingComponent
-							key={index}
-							img={accommodation.images}
-							name={accommodation.name}
-							location={accommodation.address}
-							price="N15,000.00/Night"
-							id={accommodation?.id}
-						/>
-					</>
-				))}
+        setAccommodations(res?.data?.body);
+      } catch (e) {
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [toggle]);
 
-				{(!services && !accommodations) ||
-					(services.length == 0 && accommodations.length === 0 && (
-						<div className="absolute top-[30%] left-[50%]  translate-x-[-50%] text-4xl">
-							No listings yet.
-						</div>
-					))}
-			</div>
-		</div>
-	);
+  return (
+    <div className="relative w-full h-full grow flex flex-col items-start gap-4 flex-shrink-0 my-3">
+      <div
+        className="grid items-start self-stretch grow justify-between px-4 py-8 gap-4"
+        style={{ gridTemplateColumns: "repeat(3, 1fr)" }}
+      >
+        {accommodations?.map((accommodation: any, index) => (
+          <>
+            <ListingComponent
+              key={index}
+              img={accommodation?.accom_images[0]}
+              name={accommodation?.accomodation_name}
+              location={`${accommodation?.accomodation_address}, ${accommodation?.accomodation_city}, ${accommodation?.accomodation_state}`}
+              price=""
+              id={accommodation?.id}
+              setTogle={setToggle}
+            />
+          </>
+        ))}
+      </div>
+
+      {!accommodations ||
+        (accommodations.length === 0 &&
+          (loading ? (
+            <img
+              src={spinner}
+              alt="spinner"
+              className="w-[32px] h-[32px] text-center mx-auto absolute top-1/2 left-1/2 -translate-x-1/2  -translate-y-1/2"
+            />
+          ) : (
+            <div className="absolute top-[30%] left-[50%]  translate-x-[-50%] text-2xl">
+              No listings yet.
+            </div>
+          )))}
+    </div>
+  );
 };

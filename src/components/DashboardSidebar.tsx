@@ -2,9 +2,11 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import logo from "../assets/Logo.png";
 import { handleSignOut } from "./DashboardMain";
+import { useStore } from "../hooks/useStore";
 
 export const DashboardSidebar = () => {
   const location = useLocation();
+  const store = useStore();
 
   const isLinkActive = (pathname: string) => {
     return location.pathname === pathname;
@@ -133,7 +135,10 @@ export const DashboardSidebar = () => {
 
               <p
                 className={`text-center text-lg font-medium ${
-                  isLinkActive("/dashboard/listings") ? activeClass : ""
+                  isLinkActive("/dashboard/listings") ||
+                  isLinkActive("/dashboard/")
+                    ? activeClass
+                    : ""
                 }`}
               >
                 Listings
@@ -212,7 +217,12 @@ export const DashboardSidebar = () => {
               />
             </svg>
 
-            <p className="text-center text-lg font-medium">Sign Out</p>
+            <p
+              className="text-center text-lg font-medium"
+              onClick={() => handleSignOut(store)}
+            >
+              Sign Out
+            </p>
           </div>
         </div>
       </div>

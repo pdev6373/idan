@@ -113,6 +113,23 @@ export const ProfilePage = () => {
                 <h1 className="text-lg font-bold">{store.auth?.address}</h1>
               </div>
             </div>
+
+            <div className="flex justify-between items-center mt-9 w-full">
+              <div className="w-1/2">
+                <h1 className="text-lg font-semibold text-[#797979] mb-1">
+                  State
+                </h1>
+                <h1 className="text-lg font-bold ">{`${
+                  store.auth?.state?.slice(0, 1)?.toUpperCase() || ""
+                }${store.auth?.state?.slice(1)?.toLowerCase() || ""}`}</h1>
+              </div>
+              <div className="w-1/2">
+                <h1 className="text-lg font-semibold text-[#797979] mb-1">
+                  City
+                </h1>
+                <h1 className="text-lg font-bold">{store.auth?.city}</h1>
+              </div>
+            </div>
           </section>
         </div>
       </div>

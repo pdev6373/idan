@@ -24,6 +24,8 @@ const SignIn = () => {
 
   const store = useContext(AuthContext);
 
+  console.log(password);
+
   const errorCheck = () => {
     setErrors({});
     if (!emailAddress) {
@@ -89,7 +91,7 @@ const SignIn = () => {
               token: res?.data?.body?.access_token,
               profilePics: res?.data?.body?.profile_pic,
             });
-            navigate("/");
+            navigate("/explore/accommodations");
           }
           return res.data;
         })

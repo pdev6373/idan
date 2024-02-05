@@ -19,7 +19,7 @@ export const ResidentScreen = () => {
           </div>
           {/* hvh */}
 
-          <div
+          {/* <div
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             className="relative"
@@ -33,9 +33,13 @@ export const ResidentScreen = () => {
             >
               <div className="flex items-center gap-4">
                 <p className="text-base font-medium leading-5">Sort by</p>
-                <div className="flex items-center gap-2 rounded-md border border-[#304FFE] shadow-xs px-1 py-1">
+                <div className="flex items-center gap-2 rounded-md border border-[#304FFE] shadow-xs px-3 py-2">
                   <p className=" text-base font-medium leading-5">All</p>
-                  <img src={arrowUp} alt="" />
+                  <img
+                    src={arrowUp}
+                    alt=""
+                    style={{ transform: "rotate(-180deg)" }}
+                  />
                 </div>
               </div>
             </p>
@@ -67,15 +71,15 @@ export const ResidentScreen = () => {
                 </p>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
         <div className="my-3">
           <p className="text-gray-600 font-dm-sans text-base font-light leading-5">
             Discover the perfect acccommodation space that matches your taste.
           </p>
         </div>
-        <div className="flex justify-between">
-          <div>
+        {/* <div className="flex justify-between"> */}
+        {/* <div>
             <form>
               <input
                 type="search"
@@ -83,12 +87,12 @@ export const ResidentScreen = () => {
                 className="py-3 px-2 w-[400px] outline-none rounded-md border-none bg-white text-gray-600 text-sm font-normal leading-6 "
               />
             </form>
-          </div>
-          {/* <div className="flex items-center gap-2">
+          </div> */}
+        {/* <div className="flex items-center gap-2">
             <p className="text-base font-medium leading-normal">Next </p>
             <img src={next} alt="" className="ml-1" />
           </div> */}
-        </div>
+        {/* </div> */}
       </div>
       <ListingSection />
       <Footer />

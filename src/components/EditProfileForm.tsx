@@ -1,9 +1,11 @@
-import React, { useContext, useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useStore } from "../hooks/useStore";
-import AuthContext from "../context/AuthContext";
 import { useUserquery } from "../hooks/useUserquery";
 import { useNavigate } from "react-router-dom";
 import { Input } from ".";
+import axios from "axios";
+import spinner from "../assets/spinner.svg";
+import NaijaStates from "naija-state-local-government";
 
 export const EditProfileForm = () => {
   const store = useStore();
@@ -20,6 +22,7 @@ export const EditProfileForm = () => {
   const [address, setAddress] = useState(store?.auth?.address || "");
   const [city, setCity] = useState(store?.auth?.city || "");
   const [state, setState] = useState(store?.auth?.state || "");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     store.auth?.user?.ServiceProfile && setUser(store.auth.user.ServiceProfile);
@@ -28,55 +31,57 @@ export const EditProfileForm = () => {
     console.log(user);
   }, []);
 
-  const handleInputChange = (e: any) => {
-    setUser({ ...user, [e.target.name]: e.target.value });
-  };
-
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const url = `${store.url}/profile/${
-      store.auth.role && store.auth?.role.toLowerCase().split(" ")[0]
-    }`;
-
     try {
+      setLoading(true);
       const formData = new FormData();
 
       formData.append("brand_name", brand);
       formData.append("phone_number", phoneNumber);
       formData.append("brand_address", address);
-      formData.append("state", state);
+      formData.append("state", state.toUpperCase());
       formData.append("city", city);
-
-      formData.append("profile_picture", "");
-
       formData.append("first_name", firstName);
       formData.append("last_name", lastName);
 
-      const response = await fetch(url, {
-        method: "PUT",
-        headers: {
-          Authorization: "Bearer " + store.auth.token,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(user),
+      const response = await axios.patch(
+        `${store.url}/accomodation_provider/profile/me/update`,
+        formData,
+        {
+          headers: {
+            Authorization: "Bearer " + store.auth.token,
+          },
+        }
+      );
+
+      store.setAuth({
+        ...store.auth,
+        // firstName: response?.data?.body?.firstName,
+        // lastName: lastName,
+        // email: email,
+        // role: profile,
+        brandName: response?.data?.body?.brand_name,
+        phoneNumber: response?.data?.body?.phone_number,
+        address: response?.data?.body?.brand_address,
+        state: response?.data?.body?.state,
+        city: response?.data?.body?.city,
       });
-      console.log(response);
+
+      navigate("/dashboard/profile");
+      console.log("response", response);
     } catch (error) {
       console.error("An error occurred:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div>
-      <form
-        action=""
-        className="flex flex-col"
-        method="PUT"
-        encType="multipart/form-data"
-        onSubmit={handleFormSubmit}
-      >
-        <div className="flex p-2 m-2 gap-16 w-full">
+      <form className="flex flex-col" onSubmit={handleFormSubmit}>
+        {/* <div className="flex p-2 m-2 gap-16 w-full">
           <div className="w-1/2">
             <Input
               type="text"
@@ -98,9 +103,9 @@ export const EditProfileForm = () => {
               error={false}
             />
           </div>
-        </div>
+        </div> */}
 
-        <div className="flex p-2 m-2 gap-16 w-full">
+        {/* <div className="flex p-2 m-2 gap-16 w-full">
           <div className="w-1/2">
             <Input
               type="email"
@@ -123,7 +128,7 @@ export const EditProfileForm = () => {
               error={false}
             />
           </div>
-        </div>
+        </div> */}
 
         <div className="flex p-2 m-2 gap-16 w-full">
           <div className="w-1/2">
@@ -153,21 +158,36 @@ export const EditProfileForm = () => {
           <div className="w-1/2">
             <Input
               type="text"
-              label="City"
-              placeHolder="City"
-              value={city}
-              onChange={setCity}
+              label="State"
+              placeHolder="State"
+              value={state}
+              onChange={setState}
               error={false}
+              dropdown={NaijaStates.states()}
             />
           </div>
 
           <div className="w-1/2">
             <Input
               type="text"
-              label="State"
-              placeHolder="State"
-              value={state}
-              onChange={setState}
+              label="City"
+              placeHolder="City"
+              value={city}
+              onChange={setCity}
+              error={false}
+              dropdown={state ? NaijaStates.lgas(state)?.lgas : []}
+            />
+          </div>
+        </div>
+
+        <div className="flex p-2 m-2 gap-16 w-full">
+          <div className="w-1/2">
+            <Input
+              type="tel"
+              label="Phone Number"
+              placeHolder="Phone Number"
+              value={phoneNumber}
+              onChange={setPhoneNumber}
               error={false}
             />
           </div>
@@ -178,7 +198,15 @@ export const EditProfileForm = () => {
             className="bg-primary text-white rounded-3xl py-2 px-6 w-[120px] float-right"
             type="submit"
           >
-            Save
+            {loading ? (
+              <img
+                src={spinner}
+                alt="spinner"
+                className="w-[24px] h-[24px] text-center mx-auto"
+              />
+            ) : (
+              "Save"
+            )}
           </button>
         </div>
       </form>

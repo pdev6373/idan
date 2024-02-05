@@ -1,13 +1,19 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import uploadImgIcon from "../assets/Cloud upload.svg";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios, { AxiosError } from "axios";
 import { useStore } from "../hooks/useStore";
 import { useAuth } from "../hooks/useAuth";
 import { ApiResponseError } from "./SignUpForm";
 import { Input } from ".";
+import NaijaStates from "naija-state-local-government";
+import spinner from "../assets/spinner.svg";
 
-export const ListingForm = () => {
+export const ListingForm = ({
+  listingType = "add",
+}: {
+  listingType?: "add" | "edit";
+}) => {
   const inputRefs = useRef<
     HTMLInputElement[] | HTMLSelectElement[] | HTMLTextAreaElement[]
   >([]);
@@ -26,11 +32,43 @@ export const ListingForm = () => {
   const [previewImageUrl, setPreviewImageUrl] = useState<string[] | null>(null);
   const [error, setError] = useState<any>(null);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  const { listingId } = useParams();
+
+  useEffect(() => {
+    const getListingDetails = async () => {
+      try {
+        // if (!store.auth.role) return;
+        const res = await axios.get(
+          // `${store.url}/accomodation_provider/listing/update/${listingId}`,
+          `${store.url}/accomodation_provider/listing/filter/${listingId}`,
+          { headers: { Authorization: "Bearer " + store.auth.token } }
+        );
+        const data = res?.data?.body;
+
+        setName(data?.accomodation_name);
+        setAddress(data?.accomodation_address);
+        setCity(data?.accomodation_city);
+        setState(data?.accomodation_state);
+        setType(data?.accomodation_type);
+        setRooms(data?.number_of_rooms);
+        setKitchen(data?.number_of_kitchens);
+        setbathroom(data?.number_of_bathrooms);
+        setDescription(data?.accomodation_description);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    if (listingType === "edit") getListingDetails();
+  }, []);
 
   const handlePost = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     try {
+      setLoading(true);
       const formData = new FormData();
 
       formData.append("accomodation_name", name);
@@ -40,7 +78,7 @@ export const ListingForm = () => {
       formData.append("number_of_rooms", rooms);
       formData.append("number_of_kitchen", kitchen);
       formData.append("number_of_bathrooms", bathroom);
-      formData.append("state", state);
+      formData.append("state", state.toUpperCase());
       formData.append("city", city);
 
       if (selectedImage)
@@ -48,31 +86,46 @@ export const ListingForm = () => {
           formData.append("accom_images", selectedImage[i]);
         }
 
-      const res = await axios.post(
-        `${store.url}/accomodation_provider/listing/create`,
-        formData,
-        {
-          headers: {
-            Authorization: "Bearer " + store.auth.token,
-            "Content-Type": "multipart/form-data", // Set the content type to multipart/form-data
-          },
-        }
-      );
+      if (listingType === "add") {
+        const res = await axios.post(
+          `${store.url}/accomodation_provider/listing/create`,
+          formData,
+          {
+            headers: {
+              Authorization: "Bearer " + store.auth.token,
+              "Content-Type": "multipart/form-data", // Set the content type to multipart/form-data
+            },
+          }
+        );
+      } else {
+        const res = await axios.patch(
+          `${store.url}/accomodation_provider/listing/update/${listingId}`,
+          formData,
+          {
+            headers: {
+              Authorization: "Bearer " + store.auth.token,
+              "Content-Type": "multipart/form-data", // Set the content type to multipart/form-data
+            },
+          }
+        );
+      }
 
-      console.log(res.data);
       navigate("/dashboard/listings");
     } catch (err: any) {
       console.log("err", err);
       const error: AxiosError<ApiResponseError> = err;
-      setError(error.response?.data.message || error.message);
+      setError(error.response?.data?.message || error.message);
       console.log(err);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      const selectedFiles = Array.from(files);
+      const selectedFiles =
+        listingType === "add" ? Array.from(files) : Array.from(files).reverse();
       setSelectedImage(selectedFiles);
 
       // Create preview URLs for each selected file
@@ -80,7 +133,10 @@ export const ListingForm = () => {
         URL.createObjectURL(file)
       );
       setPreviewImageUrl((prev: any) => {
-        if (prev) return [...prev, previewUrls];
+        if (prev)
+          return listingType === "add"
+            ? [...prev, previewUrls]
+            : [previewUrls, ...prev];
         else return previewUrls;
       });
     }
@@ -127,6 +183,15 @@ export const ListingForm = () => {
               onChange={setType}
               type="text"
               error={false}
+              dropdown={[
+                "HOSTEL",
+                "GUEST HOUSE",
+                "LODGE",
+                "SELF-CON",
+                "SINGLE ROOM",
+                "FLAT",
+                "OTHERS",
+              ]}
             />
           </div>
 
@@ -169,22 +234,25 @@ export const ListingForm = () => {
         <div className="flex items-center p-2 m-2 gap-16 w-full">
           <div className="w-1/2">
             <Input
-              label="City"
-              placeHolder="City"
-              value={city}
-              onChange={setCity}
-              type="text"
-              error={false}
-            />
-          </div>
-          <div className="w-1/2">
-            <Input
               label="State"
               placeHolder="State"
               value={state}
               onChange={setState}
               type="text"
               error={false}
+              dropdown={NaijaStates.states()}
+            />
+          </div>
+
+          <div className="w-1/2">
+            <Input
+              label="City"
+              placeHolder="City"
+              value={city}
+              onChange={setCity}
+              type="text"
+              error={false}
+              dropdown={state ? NaijaStates.lgas(state)?.lgas : []}
             />
           </div>
         </div>
@@ -280,8 +348,17 @@ export const ListingForm = () => {
           <button
             type="submit"
             className={`bg-primary text-white rounded-3xl py-2 px-14 flex items-center gap-4 disabled:bg-blue-300 disabled:cursor-not-allowed`}
+            disabled={!selectedImage}
           >
-            Post
+            {loading ? (
+              <img
+                src={spinner}
+                alt="spinner"
+                className="w-[24px] h-[24px] text-center mx-auto"
+              />
+            ) : (
+              "Post"
+            )}
           </button>
         </div>
       </form>

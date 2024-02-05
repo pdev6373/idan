@@ -35,9 +35,9 @@ export const DashboardMain = () => {
         </div>
 
         <div className="flex gap-8 pl-14">
-          <Link to={"/explore/accommodations"}>
+          {/* <Link to={"/explore/accommodations"}>
             <BtnRoundedPrm text="Explore" />
-          </Link>
+          </Link> */}
 
           <div className="flex gap-3 items-center">
             <img

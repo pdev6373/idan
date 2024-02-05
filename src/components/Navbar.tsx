@@ -14,104 +14,113 @@ import { Role } from "../context/AuthContext";
 import axios from "axios";
 
 export const Navbar: React.FC = () => {
-	const [isHovered, setIsHovered] = React.useState<boolean>(false);
-	const [isProfileHovered, setIsProfileHovered] =
-		React.useState<boolean>(false);
-	const store = useStore();
-	const auth = store.auth;
-	const path = useLocation().pathname;
-	const navigate = useNavigate();
-	const queryClient = new QueryClient();
+  const [isHovered, setIsHovered] = React.useState<boolean>(false);
+  const [isProfileHovered, setIsProfileHovered] =
+    React.useState<boolean>(false);
+  const store = useStore();
+  const auth = store.auth;
+  const path = useLocation().pathname;
+  const navigate = useNavigate();
+  const queryClient = new QueryClient();
 
-	const [modal, setModal] = useState(false);
-	const [editFirstName, setEditFirstName] = useState(false);
-	const [editLastName, setEditLastName] = useState(false);
-	const [editEmail, setEditEmail] = useState(false);
-	const [firstName, setFirstName] = useState(store.auth.firstName);
-	const [lastName, setLastName] = useState(store.auth.lastName);
-	const [email, setEmail] = useState(store.auth.email);
-	const [file, setFile] = useState<File | null>(null);
-	const [previewUrl, setPreviewImageUrl] = useState<string | null>(null);
-	const profileRef = useRef<HTMLInputElement | null>(null);
-	const [isOpen, setIsOpen] = useState(false);
+  const [modal, setModal] = useState(false);
+  const [editFirstName, setEditFirstName] = useState(false);
+  const [editLastName, setEditLastName] = useState(false);
+  const [editEmail, setEditEmail] = useState(false);
+  const [firstName, setFirstName] = useState(store.auth.firstName);
+  const [lastName, setLastName] = useState(store.auth.lastName);
+  const [email, setEmail] = useState(store.auth.email);
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewImageUrl] = useState<string | null>(null);
+  const profileRef = useRef<HTMLInputElement | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
 
-	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const file = e.target.files && e.target.files[0]; // Get the first selected file
-		if (file) {
-			const previewUrl = URL.createObjectURL(file); // Create a preview URL for the selected file
-			setFile(file); // Set the selected file
-			setPreviewImageUrl(previewUrl); // Set the preview URL
-		}
-	};
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files && e.target.files[0]; // Get the first selected file
+    if (file) {
+      const previewUrl = URL.createObjectURL(file); // Create a preview URL for the selected file
+      setFile(file); // Set the selected file
+      setPreviewImageUrl(previewUrl); // Set the preview URL
+    }
+  };
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		try {
-			e.preventDefault();
-			console.log("first");
-			const formData = new FormData();
-			formData.append("firstName", firstName);
-			formData.append("lastName", lastName);
-			formData.append("media", file as Blob);
-			formData.append("email", email);
-			formData.append(
-				"role",
-				profileRef.current
-					? (profileRef.current?.value as string)
-					: (store.auth.role as string)
-			);
+  const handleSubmit = async (e: React.FormEvent) => {
+    try {
+      e.preventDefault();
+      console.log("first");
+      const formData = new FormData();
+      formData.append("firstName", firstName);
+      formData.append("lastName", lastName);
+      formData.append("media", file as Blob);
+      formData.append("email", email);
+      formData.append(
+        "role",
+        profileRef.current
+          ? (profileRef.current?.value as string)
+          : (store.auth.role as string)
+      );
 
-			const url = `${store.url}/` + "profile/user";
+      const url = `${store.url}/` + "profile/user";
 
-			const headers = {
-				Authorization: "Bearer " + store.auth.token,
-				"Content-Type": "multipart/form-data",
-			};
+      const headers = {
+        Authorization: "Bearer " + store.auth.token,
+        "Content-Type": "multipart/form-data",
+      };
 
-			const res = await axios.put(url, formData, { headers });
-			console.log(res);
-		} catch (err: any) {
-			console.log(err);
-		}
-	};
+      const res = await axios.put(url, formData, { headers });
+      console.log(res);
+    } catch (err: any) {
+      console.log(err);
+    }
+  };
 
-	const handleDropdown = (
-		value: Role,
-		e: React.MouseEvent<HTMLDivElement, MouseEvent>
-	) => {
-		e.stopPropagation();
-		if (profileRef.current) {
-			profileRef.current.value = value;
-		}
-		setIsOpen(false);
-	};
+  const handleDropdown = (
+    value: Role,
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
+    e.stopPropagation();
+    if (profileRef.current) {
+      profileRef.current.value = value;
+    }
+    setIsOpen(false);
+  };
 
-	const handleProfileClick = () => {
-		if (auth.role && auth.role.includes("Provider")) {
-			navigate("/dashboard");
-		} else {
-			setModal(true);
-		}
-	};
-	// console.log(store.auth.user);
-	
+  const handleProfileClick = () => {
+    if (auth.role && auth.role.includes("Provider")) {
+      navigate("/dashboard");
+    } else {
+      setModal(true);
+    }
+  };
+  // console.log(store.auth.user);
 
-	return (
-    <div
-      className={`pr-24 text-base flex items-center justify-between 
-       `}
-    >
+  return (
+    <div className="pr-12 text-base flex items-center justify-between">
       <img className="w-56 pl-5" src={logo} alt="img" />
 
-      <div className="flex gap-24 transition-all duration-100 ease-in source-sans text-lg">
-        <Link to={"/"}>
-          <div
-            className={`hover:text-primary cursor-pointer trans ${
-              path === "/" && "text-primary"
-            }`}
-          >
-            Home
-          </div>
-        </Link>
+      <div className="flex gap-14 transition-all duration-100 ease-in source-sans text-lg">
+        {store.auth.email ? (
+          <Link to={"/explore/accommodations"}>
+            <div
+              className={`hover:text-primary cursor-pointer trans ${
+                path === "/explore/accommodations" && "text-primary"
+              }`}
+            >
+              Accommodations
+            </div>
+          </Link>
+        ) : (
+          <Link to={"/"}>
+            <div
+              className={`hover:text-primary cursor-pointer trans ${
+                path === "/" && "text-primary"
+              }`}
+            >
+              Home
+            </div>
+          </Link>
+        )}
+
         <Link to="/About">
           <div
             className={`hover:text-primary cursor-pointer trans ${
@@ -121,63 +130,6 @@ export const Navbar: React.FC = () => {
             About
           </div>
         </Link>
-
-        <div
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          className="relative"
-        >
-          <p
-            className={`${isHovered && "text-primary"} cursor-pointer trans ${
-              path === "/explore/accommodations" && "text-primary"
-            } 
-          ${path === "/explore/services" && "text-primary"}`}
-          >
-            Explore
-            <svg
-              className={`inline-block ml-[2px] trans ${
-                isHovered && "translate-y-[2px]"
-              }`}
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <g id="Iconly/Light/Arrow - Down 2">
-                <g id="Arrow - Down 2">
-                  <path
-                    id="Stroke 1"
-                    d="M12.6666 5.66669L7.99992 10.3334L3.33325 5.66669"
-                    stroke={isHovered ? "#0D267D" : "#000"}
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </g>
-              </g>
-            </svg>
-          </p>
-
-          <div className="absolute right-0">
-            <div
-              className={`bg-[#e9eefd]  shadow-md text-center mt-2 w-56 ${
-                isHovered ? "block animate-dropdown" : "hidden"
-              }`}
-            >
-              <Link to={"/explore/accommodations"}>
-                <p className="cursor-pointer p-2 trans mb-2 hover:bg-[#dfe6fb]">
-                  Accommodations
-                </p>
-              </Link>
-              <Link to={"/explore/services"}>
-                <p className="cursor-pointer p-2 trans hover:bg-[#dfe6fb] mb-2">
-                  Services
-                </p>
-              </Link>
-            </div>
-          </div>
-        </div>
 
         <Link to="/Contact">
           <div
@@ -190,7 +142,7 @@ export const Navbar: React.FC = () => {
         </Link>
       </div>
       {!store.auth.email ? (
-        <div className="flex gap-16 ">
+        <div className="flex gap-6 ">
           <Link to="/SignIn">
             <BtnTrans text="Sign In" />
           </Link>
@@ -454,8 +406,6 @@ export const Navbar: React.FC = () => {
                           onChange={(e) => setFirstName(e.target.value)}
                         />
 											</div> */}
-											
-											
 
                       {/* </div> */}
 
