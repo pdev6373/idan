@@ -132,7 +132,7 @@ function App() {
   return (
     <div className="bg-background">
       {width < 1206 ? (
-        <div className="contianer mx-auto h-screen flex flex-col items-center justify-center">
+        <div className="contianer mx-auto h-screen flex flex-col items-center justify-center text-center">
           <h1 className="text-2xl">Sorry for the inconvenience, </h1>
           <h2 className="text-lg">Please switch to a desktop screen...</h2>
         </div>

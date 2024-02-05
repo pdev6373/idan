@@ -10,7 +10,6 @@ import { handleSignOut } from "./DashboardMain";
 import profileImage from "../assets/picshaw.svg";
 import pencil from "../assets/pencil.svg";
 import editPencil from "../assets/editPencil.svg";
-import { Role } from "../context/AuthContext";
 import axios from "axios";
 
 export const Navbar: React.FC = () => {
@@ -53,12 +52,6 @@ export const Navbar: React.FC = () => {
       formData.append("lastName", lastName);
       formData.append("media", file as Blob);
       formData.append("email", email);
-      formData.append(
-        "role",
-        profileRef.current
-          ? (profileRef.current?.value as string)
-          : (store.auth.role as string)
-      );
 
       const url = `${store.url}/` + "profile/user";
 
@@ -74,23 +67,18 @@ export const Navbar: React.FC = () => {
     }
   };
 
-  const handleDropdown = (
-    value: Role,
-    e: React.MouseEvent<HTMLDivElement, MouseEvent>
-  ) => {
+  const handleDropdown = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.stopPropagation();
-    if (profileRef.current) {
-      profileRef.current.value = value;
-    }
     setIsOpen(false);
   };
 
   const handleProfileClick = () => {
-    if (auth.role && auth.role.includes("Provider")) {
-      navigate("/dashboard");
-    } else {
-      setModal(true);
-    }
+    setModal(true);
+    // if (auth.role && auth.role.includes("Provider")) {
+    //   navigate("/dashboard");
+    // } else {
+    //   setModal(true);
+    // }
   };
   // console.log(store.auth.user);
 
@@ -209,9 +197,9 @@ export const Navbar: React.FC = () => {
                 >
                   <p
                     className="cursor-pointer p-2 trans mb-1 hover:bg-[#dfe6fb]"
-                    onClick={handleProfileClick}
+                    // onClick={handleProfileClick}
                   >
-                    {auth.role?.includes("Provider") ? "Dashboard" : "Profile"}
+                    Profile
                   </p>
 
                   <p
@@ -228,11 +216,11 @@ export const Navbar: React.FC = () => {
       )}
       {modal && (
         <div
-          className="fixed left-0  w-screen  h-[200vh]  flex justify-center z-50 items-center bg-[#F3F7FD] bg-opacity-80 overlay-backdrop"
+          className="fixed left-0 top-0  w-screen  h-[100vh] flex justify-center items-center z-50 items-center bg-[#F3F7FD] bg-opacity-80 overlay-backdrop"
           onClick={() => setModal(false)}
         >
           <div
-            className="bg-white px-11 py-10 rounded-[1.25rem] absolute bottom-[250px]"
+            className="bg-white px-11 py-10 rounded-[1.25rem] h-4/5"
             onClick={(e) => {
               e.stopPropagation();
               setIsOpen(false);
@@ -298,80 +286,6 @@ export const Navbar: React.FC = () => {
                     )}
 
                     <div className="flex items-center justify-between	 py-2 px-4 m-2 gap-16">
-                      {editEmail ? (
-                        <div className="w-full">
-                          <p className="my-3 text-sm font-normal text-[#737272]">
-                            Role
-                          </p>
-                          <div
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setIsOpen(true);
-                            }}
-                            className={`${
-                              isOpen
-                                ? "rounded-t-[30px] border-b-0"
-                                : "rounded-full"
-                            } trans cursor-pointer font-medium dropdown w-full relative  py-2 border outline-none  text-gray border-grey bg-transparent`}
-                          >
-                            <p className="h-7 px-6">
-                              {profileRef.current?.value ||
-                                (store.auth.role as string)}
-                            </p>
-
-                            <div
-                              className={`absolute overflow-hidden z-20 bg-white w-full  border border-grey rounded-b-[30px] border-t-0 ${
-                                isOpen
-                                  ? "animate-slideDown "
-                                  : "animate-slideUp"
-                              }`}
-                            >
-                              <div
-                                className="hover:bg-grey cursor-pointer px-6 trans"
-                                onClick={(e) => handleDropdown(Role.seeker, e)}
-                              >
-                                explorer
-                              </div>
-
-                              <div
-                                className="hover:bg-grey cursor-pointer px-6 trans"
-                                onClick={(e) =>
-                                  handleDropdown(Role.serviceProvider, e)
-                                }
-                              >
-                                Service Provider
-                              </div>
-
-                              <div
-                                className="hover:bg-grey cursor-pointer px-6 trans"
-                                onClick={(e) =>
-                                  handleDropdown(Role.accommodationProvider, e)
-                                }
-                              >
-                                Accommodation Provider
-                              </div>
-                            </div>
-
-                            <input
-                              ref={profileRef}
-                              type="hidden"
-                              name="profile"
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="">
-                          <p className="my-3 text-sm font-normal  text-[#737272]">
-                            Role
-                          </p>
-                          <p className="my-3 text-md font-medium truncate  mx-0">
-                            {store.auth.role}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between	 py-2 px-4 m-2 gap-16">
                       {/* <div className="w-[15%] m-0"> */}
                       {editEmail ? (
                         <div className="w-[50%]">
@@ -417,15 +331,15 @@ export const Navbar: React.FC = () => {
                               <p className="my-3 text-sm font-normal text-[#737272]">
                                 Profile Type
                               </p>
-                              <p className="my-3 text-md font-medium">
+                              {/* <p className="my-3 text-md font-medium">
                                 {store.auth.role}
-                              </p>
+                              </p> */}
                             </div>
                           </div>
                         ))}
                     </div>
                   </div>
-                  <div className="relative cursor-pointer">
+                  {/* <div className="relative cursor-pointer">
                     <img
                       src={
                         previewUrl ||
@@ -452,7 +366,7 @@ export const Navbar: React.FC = () => {
                         <img src={editPencil} alt="Edit" className="" />
                       </label>
                     ) : null}
-                  </div>
+                  </div> */}
                 </div>
                 {editFirstName || editLastName || editEmail ? (
                   <button
