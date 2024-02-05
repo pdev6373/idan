@@ -7,6 +7,7 @@ import svg from "../assets/Group 36.svg";
 import spinner from "../assets/spinner.svg";
 import { Button, Input } from ".";
 import Cookies from "js-cookie";
+import NaijaStates from "naija-state-local-government";
 
 interface Errors {
   firstName?: string;
@@ -29,6 +30,8 @@ export interface Props {
   setSuccess: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+type ProfileType = "Accomodation Provider" | "Explorer";
+
 export const SignUpForm = ({ setSuccess }: Props) => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -39,7 +42,7 @@ export const SignUpForm = ({ setSuccess }: Props) => {
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
-  const [profile, setProfile] = useState<Role | undefined>(Role.seeker);
+  const [profile, setProfile] = useState<ProfileType | undefined>("Explorer");
   const [errors, setErrors] = useState<Errors>({});
   const [clicked, setClicked] = useState<boolean>(false);
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -47,7 +50,6 @@ export const SignUpForm = ({ setSuccess }: Props) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const navigate = useNavigate();
-  const role = profile as Role;
 
   const toggleShowPassword = () => {
     setShowPassword(!showPassword);
@@ -58,7 +60,7 @@ export const SignUpForm = ({ setSuccess }: Props) => {
   }, [store.auth]);
 
   const handleProfileClick = (
-    value: Role,
+    value: ProfileType,
     e: React.MouseEvent<HTMLDivElement, MouseEvent>
   ) => {
     e.stopPropagation();
@@ -83,7 +85,7 @@ export const SignUpForm = ({ setSuccess }: Props) => {
         password: "Password of at least 8 characters is required",
       }));
 
-    if (profile === Role.accommodationProvider) {
+    if (profile === "Accomodation Provider") {
       if (!company)
         setErrors((prev) => ({
           ...prev,
@@ -127,21 +129,23 @@ export const SignUpForm = ({ setSuccess }: Props) => {
             lastName: res?.data?.body?.last_name,
             email: res?.data?.body?.email,
             id: res?.data?.body?.id,
-            token: res?.data?.body?.token,
+            token: res?.data?.body?.access_token,
             profilePics: res?.data?.body?.profile_pic,
           });
+
+          console.log("signip", res?.data?.body);
 
           const accommodationData = {
             brand_name: company,
             phone_num: phoneNumber,
             brand_address: address,
-            state: state,
+            state: state.toUpperCase(),
             city: city,
           };
           // await signupProvider.mutateAsync(accommodationData);
 
           Cookies.remove("user");
-          Cookies.set("user", res?.data?.body?.token);
+          Cookies.set("user", res?.data?.body?.access_token);
 
           axios
             .post(
@@ -149,7 +153,7 @@ export const SignUpForm = ({ setSuccess }: Props) => {
               accommodationData,
               {
                 headers: {
-                  Authorization: `Bearer ${res?.data?.body?.toke}`,
+                  Authorization: `Bearer ${res?.data?.body?.access_token}`,
                 },
               }
             )
@@ -198,7 +202,7 @@ export const SignUpForm = ({ setSuccess }: Props) => {
       profile
     ) {
       if (
-        profile === Role.accommodationProvider &&
+        profile === "Accomodation Provider" &&
         (!company || !address || !phoneNumber || !city || !state)
       )
         return;
@@ -209,10 +213,7 @@ export const SignUpForm = ({ setSuccess }: Props) => {
         email: email,
         password: password,
         confirm_password: password,
-        profile:
-          profile === "Accommodation Provider"
-            ? "Accomodation Provider"
-            : profile,
+        profile: profile,
       };
 
       store.setAuth({
@@ -220,7 +221,10 @@ export const SignUpForm = ({ setSuccess }: Props) => {
         firstName: firstName,
         lastName: lastName,
         email: email,
-        role: profile,
+        role:
+          profile === "Accomodation Provider"
+            ? Role.accommodationProvider
+            : Role.seeker,
         brandName: company,
         phoneNumber: phoneNumber,
         address: address,
@@ -228,13 +232,14 @@ export const SignUpForm = ({ setSuccess }: Props) => {
         city: city,
       });
       try {
-        await signup.mutateAsync(data);
+        const res = await signup.mutateAsync(data);
+        console.log("signupRes", res);
 
-        if (profile === Role.seeker) {
+        if (profile === "Explorer") {
           setSuccess(true);
           navigate("/successsignup");
         } else {
-          const signinData = new URLSearchParams();
+          const signinData = new FormData();
           signinData.append("username", email);
           signinData.append("password", password);
 
@@ -242,14 +247,14 @@ export const SignUpForm = ({ setSuccess }: Props) => {
         }
       } catch (err) {
         const error = err as AxiosError<ApiResponseError>;
-        if (error.response?.data.message.includes("User already exists")) {
-          console.log(error.response?.data.message);
+        if (error?.response?.data?.message?.includes("User already exists")) {
+          console.log(error?.response?.data?.message);
           setErrors((prev) => ({
             ...prev,
             email: "An account with this email address exists already",
           }));
         } else {
-          setErrors({ global: error.response?.data.message || error.message });
+          setErrors({ global: error.response?.data?.message || error.message });
         }
       }
     } else return;
@@ -379,7 +384,9 @@ export const SignUpForm = ({ setSuccess }: Props) => {
                 } trans cursor-pointer font-medium dropdown w-full relative py-4  px-6 border outline-none  text-gray border-grey bg-transparent flex items-center`}
               >
                 <p className="text-lg">
-                  {profile === Role.seeker ? "Explorer" : profile}
+                  {profile === "Explorer"
+                    ? Role.seeker
+                    : Role.accommodationProvider}
                 </p>
 
                 <img
@@ -412,9 +419,9 @@ export const SignUpForm = ({ setSuccess }: Props) => {
                 >
                   <div
                     className={`hover:bg-grey cursor-pointer px-6 py-1 trans text-lg ${
-                      profile === Role.seeker && "bg-grey"
+                      profile === "Explorer" && "bg-grey"
                     }`}
-                    onClick={(e) => handleProfileClick(Role.seeker, e)}
+                    onClick={(e) => handleProfileClick("Explorer", e)}
                   >
                     Explorer
                   </div>
@@ -428,10 +435,10 @@ export const SignUpForm = ({ setSuccess }: Props) => {
 
                   <div
                     className={`hover:bg-grey cursor-pointer px-6 py-1 trans text-lg ${
-                      profile === Role.accommodationProvider && "bg-grey"
+                      profile === "Accomodation Provider" && "bg-grey"
                     }`}
                     onClick={(e) =>
-                      handleProfileClick(Role.accommodationProvider, e)
+                      handleProfileClick("Accomodation Provider", e)
                     }
                   >
                     Accommodation Provider
@@ -441,7 +448,7 @@ export const SignUpForm = ({ setSuccess }: Props) => {
             </div>
 
             <>
-              {profile === Role.accommodationProvider ? (
+              {profile === "Accomodation Provider" ? (
                 <>
                   <div>
                     <Input
@@ -494,32 +501,34 @@ export const SignUpForm = ({ setSuccess }: Props) => {
                   <div className="flex gap-6">
                     <div className="w-1/2">
                       <Input
-                        label="City"
-                        placeHolder="City"
-                        type="text"
-                        value={city}
-                        onChange={setCity}
-                        error={!!errors.city}
-                      />
-                      {errors.city && (
-                        <p className="text-red-500 text-xs ml-2 pt-1 animate-shake trans ">
-                          {errors.city}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="w-1/2">
-                      <Input
                         label="State"
                         placeHolder="State"
                         type="text"
                         value={state}
                         onChange={setState}
                         error={!!errors.state}
+                        dropdown={NaijaStates.states()}
                       />
                       {errors.state && (
                         <p className="text-red-500 text-xs ml-2 pt-1 animate-shake trans ">
                           {errors.state}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="w-1/2">
+                      <Input
+                        label="City"
+                        placeHolder="City"
+                        type="text"
+                        value={city}
+                        onChange={setCity}
+                        error={!!errors.city}
+                        dropdown={state ? NaijaStates.lgas(state)?.lgas : []}
+                      />
+                      {errors.city && (
+                        <p className="text-red-500 text-xs ml-2 pt-1 animate-shake trans ">
+                          {errors.city}
                         </p>
                       )}
                     </div>
