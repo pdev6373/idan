@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Input } from ".";
 import axios from "axios";
 import spinner from "../assets/spinner.svg";
-const NaijaStates = require("naija-state-local-government");
+import NaijaStates from "naija-state-local-government";
 
 export const EditProfileForm = () => {
   const store = useStore();
