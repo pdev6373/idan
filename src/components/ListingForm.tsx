@@ -6,7 +6,7 @@ import { useStore } from "../hooks/useStore";
 import { useAuth } from "../hooks/useAuth";
 import { ApiResponseError } from "./SignUpForm";
 import { Input } from ".";
-import NaijaStates from "naija-state-local-government";
+const NaijaStates = require("naija-state-local-government");
 import spinner from "../assets/spinner.svg";
 
 export const ListingForm = ({
